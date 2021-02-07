@@ -1,0 +1,12 @@
+pointer.png
+Extracted from "64 crosshairs pack" by para
+Licensed under CCC0 1.0 Universal
+Downloaded from https://opengameart.org/content/64-crosshairs-pack
+
+sky.png by devnewton
+Attribution 4.0 International (CC BY 4.0)
+Downloaded from https://opengameart.org/content/simple-sky-background
+
+target.png by Kyzerole
+Licensed by CC0
+Downloaded from https://opengameart.org/content/target

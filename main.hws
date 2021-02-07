@@ -1,0 +1,138 @@
+/*********************
+ * Shoot the targets *
+ *********************/
+@BGPIC 1, "images/sky.png"							;background image
+@BRUSH 1, "images/pointer.png", {LoadAlpha = True}	;pointer image
+@DISPLAY 1, {Title = "Targets"}						;display with title
+
+EnableLayers()
+
+displayWidth = GetAttribute(#DISPLAY, 1, #ATTRWIDTH)	;get the width of the display
+displayHeight = GetAttribute(#DISPLAY, 1, #ATTRHEIGHT)	;get the height of the display
+
+score = 0				;starting score
+timeLeft = 10			;total game time
+gameState = 0			;gamestate can be 1 (on) or 0 (off)
+
+;set target properties
+target = {}
+target.image = LoadBrush(Nil, "images/target.png", {LoadAlpha = True, Link = True})
+target.radius = 50
+target.x = Limit(Rnd(displayWidth), target.radius, displayWidth - target.radius)		;limit to display's area
+target.y = Limit(Rnd(displayHeight), 2 * target.radius, displayHeight - target.radius)	;limit to display's area
+
+crosshairs = CreatePointer(Nil, #BRUSH, 1, #CENTER, #CENTER)	;create pointer from brush
+
+;replace mouse pointer
+SetPointer(crosshairs)
+
+DisplayBrush(target.image, target.x, target.y, {AnchorX = 0.5, AnchorY = 0.5})	;display first target
+SetLayerName(0, "target")		;set a name for the layer with the target (0 is latest layer created)
+
+
+/*******************************************
+ * calculate distance from target's center *
+ *******************************************/
+Function p_checkShot(x1, y1, x2, y2)
+	;Pythagorean theorem
+	;x1 and y1 is target's center
+	;x2 and y2 is where mouse was clicked
+	Return (Sqrt((x2 - x1)^2 + (y2 - y1)^2))
+EndFunction
+
+
+/****************
+ * Update score *
+ ****************/
+Function p_score()
+	;if game not started, then no score to update
+	If gameState = 1
+		RemoveLayer("score")	;delete current score
+		score = score + 1		;update scores
+	EndIf
+
+	;create new score and display it
+	CreateLayer(#LEFT, #TOP, 100, 20)				;create new score layer
+	SetLayerName(0, "score")						;set layer name for score
+	SelectLayer("score")							;select layer for drawing
+	TextOut(#LEFT + 10, #CENTER, "Score: "..score)	;draw updated score to layer
+	EndSelect()
+EndFunction
+
+
+/****************
+ * Update timer *
+ ****************/
+Function p_timer()
+    ;remember that time runs backwards to 0
+
+	;if game not started, then no time to update
+	If gameState = 1
+		RemoveLayer("timer")						;delete current time
+		timeLeft = timeLeft - 1						;update current time
+	EndIf
+
+    If timeLeft <= 0								;if time ran out
+		gameState = 0
+		StopTimer(1)
+		ClearInterval(1)
+		CreateLayer(#RIGHT, #TOP, 100, 20)
+		SetLayerName(0, "timer")
+		SelectLayer("timer")
+		TextOut(#LEFT + 10, #CENTER, "Time: 0")
+		EndSelect()
+		Wait(100)
+		End()
+    Else
+		;create new time and display it
+		CreateLayer(#RIGHT, #TOP, 100, 20)					;create new timer layer
+		SetLayerName(0, "timer")							;set layer name for timer
+		SelectLayer("timer")								;select layer for drawing
+		TextOut(#LEFT + 10, #CENTER, "Time: "..timeLeft)	;draw updated timer to layer
+		EndSelect()
+    EndIf
+EndFunction
+
+
+/************************
+ * Moves the target to  *
+ * a random spot inside *
+ * the display limits   *
+ ************************/
+Function p_moveTarget()
+	target.x = Limit(Rnd(displayWidth), target.radius, displayWidth - target.radius)
+	target.y = Limit(Rnd(displayHeight), 2 * target.radius, displayHeight - target.radius)
+	;displays de target using the layer created the first time it was showed
+	ShowLayer("target", target.x, target.y)
+EndFunction
+
+
+Function p_HandlerFunc(msg)
+	Switch(msg.action)
+	Case "OnMouseUp":
+		If (p_checkShot(target.x, target.y, MouseX(), MouseY()) < target.radius)
+			p_score()
+			p_moveTarget()
+		EndIf
+	EndSwitch
+EndFunction
+
+
+Function p_start()
+	p_score()
+	p_timer()
+	gameState = 1
+	StartTimer(1)						;start timer
+	SetInterval(1, p_timer, 1000)		;execute time countdown loop, 1 second interval
+EndFunction
+
+
+InstallEventHandler({OnMouseUp = p_HandlerFunc})
+
+
+p_start()
+
+
+Repeat
+	WaitEvent
+Forever
