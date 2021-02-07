@@ -4,9 +4,14 @@ Licensed under CCC0 1.0 Universal
 Downloaded from https://opengameart.org/content/64-crosshairs-pack
 
 sky.png by devnewton
-Attribution 4.0 International (CC BY 4.0)
+Licensed under Attribution 4.0 International (CC BY 4.0)
 Downloaded from https://opengameart.org/content/simple-sky-background
 
 target.png by Kyzerole
-Licensed by CC0
+Licensed under CC0
 Downloaded from https://opengameart.org/content/target
+
+bang.wav
+Original bang_02.ogg by rubberduck
+Licensed under CC0
+Downloaded from https://opengameart.org/content/25-cc0-bang-firework-sfx

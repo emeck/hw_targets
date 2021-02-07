@@ -1,9 +1,12 @@
-/*********************
- * Shoot the targets *
- *********************/
+@APPTITLE "Targets"
+@APPAUTHOR "Enrique Mecklenburg Serkovic"
+@APPVERSION "$VER: Balloons 0.5 (07-Feb-21)"
+@APPDESCRIPTION "Shoot the targets"
+
 @BGPIC 1, "images/sky.png"							;background image
 @BRUSH 1, "images/pointer.png", {LoadAlpha = True}	;pointer image
-@DISPLAY 1, {Title = "Targets"}						;display with title
+@SAMPLE 1, "samples/bang.wav"						;shot sound
+@DISPLAY 1, {Title = "Targets", SmoothScale = True}	;display with title
 
 EnableLayers()
 
@@ -23,8 +26,7 @@ target.y = Limit(Rnd(displayHeight), 2 * target.radius, displayHeight - target.r
 
 crosshairs = CreatePointer(Nil, #BRUSH, 1, #CENTER, #CENTER)	;create pointer from brush
 
-;replace mouse pointer
-SetPointer(crosshairs)
+SetPointer(crosshairs)			;replace mouse pointer
 
 DisplayBrush(target.image, target.x, target.y, {AnchorX = 0.5, AnchorY = 0.5})	;display first target
 SetLayerName(0, "target")		;set a name for the layer with the target (0 is latest layer created)
@@ -41,6 +43,18 @@ Function p_checkShot(x1, y1, x2, y2)
 EndFunction
 
 
+/****************************
+ * Shoot when mouse clicked *
+ ****************************/
+Function p_shoot()
+	PlaySample(1)
+	If (p_checkShot(target.x, target.y, MouseX(), MouseY()) < target.radius)
+		p_score()
+		p_moveTarget()
+	EndIf
+EndFunction
+
+
 /****************
  * Update score *
  ****************/
@@ -51,10 +65,10 @@ Function p_score()
 		score = score + 1		;update scores
 	EndIf
 
-	;create new score and display it
-	CreateLayer(#LEFT, #TOP, 100, 20)				;create new score layer
+	;create new layer for updated score 
+	CreateLayer(#LEFT, #TOP, 100, 20, {AlphaChannel = True, Clear = True})	;alphachannel and clear makes it fully transparent
 	SetLayerName(0, "score")						;set layer name for score
-	SelectLayer("score")							;select layer for drawing
+	SelectLayer("score", #SELMODE_COMBO)			;select layer for drawing; #SELMODE_COMBO allow text over transparent layer 
 	TextOut(#LEFT + 10, #CENTER, "Score: "..score)	;draw updated score to layer
 	EndSelect()
 EndFunction
@@ -76,18 +90,18 @@ Function p_timer()
 		gameState = 0
 		StopTimer(1)
 		ClearInterval(1)
-		CreateLayer(#RIGHT, #TOP, 100, 20)
+		CreateLayer(#RIGHT, #TOP, 100, 20, {AlphaChannel = True, Clear = True})
 		SetLayerName(0, "timer")
-		SelectLayer("timer")
+		SelectLayer("timer", #SELMODE_COMBO)
 		TextOut(#LEFT + 10, #CENTER, "Time: 0")
 		EndSelect()
 		Wait(100)
 		End()
     Else
-		;create new time and display it
-		CreateLayer(#RIGHT, #TOP, 100, 20)					;create new timer layer
+		;create new layer for updated time
+		CreateLayer(#RIGHT, #TOP, 100, 20, {AlphaChannel = True, Clear = True})	;alphachannel and clear makes it fully transparent
 		SetLayerName(0, "timer")							;set layer name for timer
-		SelectLayer("timer")								;select layer for drawing
+		SelectLayer("timer", #SELMODE_COMBO)				;select layer for drawing; #SELMODE_COMBO allow text over transparent layer
 		TextOut(#LEFT + 10, #CENTER, "Time: "..timeLeft)	;draw updated timer to layer
 		EndSelect()
     EndIf
@@ -107,18 +121,32 @@ Function p_moveTarget()
 EndFunction
 
 
+
+Function p_setFontGame()
+	SetFont(#SANS, 18, {Engine = #FONTENGINE_INBUILT})
+    SetFontStyle(#BOLD)
+    SetFontStyle(#ANTIALIAS)
+	SetFontColor(#WHITE)
+EndFunction
+
+
 Function p_HandlerFunc(msg)
 	Switch(msg.action)
 	Case "OnMouseUp":
-		If (p_checkShot(target.x, target.y, MouseX(), MouseY()) < target.radius)
-			p_score()
-			p_moveTarget()
-		EndIf
+		p_shoot()
+		;If (p_checkShot(target.x, target.y, MouseX(), MouseY()) < target.radius)
+		;	p_score()
+		;	p_moveTarget()
+		;EndIf
 	EndSwitch
 EndFunction
 
 
+/**************
+ * Start game *
+ **************/
 Function p_start()
+	p_setFontGame()
 	p_score()
 	p_timer()
 	gameState = 1
@@ -130,7 +158,7 @@ EndFunction
 InstallEventHandler({OnMouseUp = p_HandlerFunc})
 
 
-p_start()
+p_start()			;action!
 
 
 Repeat
