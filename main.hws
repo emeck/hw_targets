@@ -1,0 +1,42 @@
+@APPTITLE "Targets"
+@APPDESCRIPTION "Love tutorial by Kyle Schaub written in Hollywood"
+@APPAUTHOR "Enrique Mecklenburg Serkovic"
+@APPVERSION "$VER: Targets 0.1 (27-Feb-22)"
+
+@BGPIC 1, "images/sky.png"          ; load background image
+@DISPLAY {Title = "Targets"}        ; display 1, uses BGPIC 1
+
+EscapeQuit(TRUE)                    ; enable quit with ESC key
+
+; set global variables
+target = {}
+target.image = LoadBrush(Nil, "images/target.png", {LoadAlpha = TRUE})
+target.x = 300
+target.y = 300
+target.radius = 50      ; target.png is 100x100 pixels
+
+score = 0
+timer = 0
+gamestate = 1           ; 1 = game not started, 2 = game started
+
+
+/**************************
+ * Sets the mouse pointer *
+ **************************/
+Function p_SetMousePointer()
+    ;loads pointer image
+    myPointer = LoadBrush(Nil, "images/crosshairs.png", {LoadAlpha = TRUE})
+    CreatePointer(1, #BRUSH, myPointer)     ; creates pointer with hostspot at the center
+    SetPointer(1)                           ; uses pointer image 1
+    MovePointer(#CENTER, #CENTER)           ; centers pointer inside window
+EndFunction
+
+; call MainLoop() 25 times a second -> 40 * 25 = 1000 milliseconds
+;SetInterval(1, p_MainLoop, 40)
+
+; sets the pointer
+p_SetMousePointer()
+
+Repeat
+    WaitEvent
+Forever
