@@ -1,23 +1,31 @@
 @APPTITLE "Targets"
 @APPDESCRIPTION "Love tutorial by Kyle Schaub written in Hollywood"
 @APPAUTHOR "Enrique Mecklenburg Serkovic"
-@APPVERSION "$VER: Targets 0.1 (27-Feb-22)"
+@APPVERSION "$VER: Targets 0.2 (27-Feb-22)"
 
 @BGPIC 1, "images/sky.png"          ; load background image
 @DISPLAY {Title = "Targets"}        ; display 1, uses BGPIC 1
 
 EscapeQuit(TRUE)                    ; enable quit with ESC key
+EnableLayers()
 
-; set global variables
-target = {}
-target.image = LoadBrush(Nil, "images/target.png", {LoadAlpha = TRUE})
-target.x = 300
-target.y = 300
+SetFontStyle(#ANTIALIAS)
+SetFont(#SANS,24)
+
+/************************
+ * Set global variables *
+ ************************/
+target = {}     ; table for target properties
+; load target image with hotspot at center
+target.image = LoadBrush(Nil, "images/target.png", {LoadAlpha = TRUE, AnchorX = 50, AnchorY = 50})
+target.x = Rnd(GetAttribute(#DISPLAY, 1, #ATTRWIDTH)) - 50
+target.y = Rnd(GetAttribute(#DISPLAY, 1, #ATTRHEIGHT)) - 50
 target.radius = 50      ; target.png is 100x100 pixels
 
 score = 0
-timer = 0
-gamestate = 1           ; 1 = game not started, 2 = game started
+time = 0
+gameState = 1           ; 1 = game not started, 2 = game started
+
 
 
 /**************************
@@ -31,11 +39,69 @@ Function p_SetMousePointer()
     MovePointer(#CENTER, #CENTER)           ; centers pointer inside window
 EndFunction
 
-; call MainLoop() 25 times a second -> 40 * 25 = 1000 milliseconds
-;SetInterval(1, p_MainLoop, 40)
+
+
+/**************************
+ * Set the score and time *
+ **************************/
+Function p_TopBar()
+    If LayerExists("scoreBar") Then RemoveLayer("scoreBar")
+    TextOut(5, 5, "Score: "..score)
+    SetLayerName(0, "scoreBar")
+
+    If LayerExists("timeBar") Then RemoveLayer("timeBar")
+    TextOut(#CENTER, 5, "Time: "..time)
+    SetLayerName(0, "timeBar")
+EndFunction
+
+
+
+/************************
+ * Calculate distance   *
+ * from mouse to target *
+ ************************/
+Function p_DistanceBetween(x1, y1, x2, y2)
+    Return(sqrt((x2 - x1)^2 + (y2 - y1)^2))
+EndFunction
+
+
+
+/*********************************
+ * Game main loop                *
+ * Draw target, timer and points *
+ *********************************/
+Function p_MainLoop()
+    p_TopBar()
+    DisplayBrush(target.image, target.x, target.y)
+EndFunction
+
+
+
+/*****************
+ * Event handler *
+ *****************/
+Function p_HandlerFunc(msg)
+    Switch(msg.action)
+    Case "OnMouseDown":
+        Local distance = p_DistanceBetween(target.x, target.y, MouseX(), MouseY())
+        DebugPrint(distance)
+        If distance < target.radius
+            score = score + 1
+        EndIf
+        DebugPrint(score)
+    EndSwitch
+EndFunction
+
+InstallEventHandler({OnMouseDown = p_HandlerFunc})
+
 
 ; sets the pointer
 p_SetMousePointer()
+
+; call MainLoop() 25 times a second -> 40 * 25 = 1000 milliseconds
+SetInterval(1, p_MainLoop, 40)
+
+
 
 Repeat
     WaitEvent
